@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bjorn & Strand — Architecture Studio</title>
+<meta name="description" content="Bjorn & Strand is a Scandinavian architecture studio creating thoughtful, enduring spaces across residential and commercial projects.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"></noscript>
+
+<style>
+  :root {
+    --cream: #f7f5f0;
+    --off-white: #faf9f6;
+    --dark: #1a1917;
+    --mid: #6b6860;
+    --light: #c8c4bc;
+    --accent: #8b7355;
+    --edge: clamp(2rem, 6vw, 6rem);
+    --gap: clamp(6rem, 14vw, 14rem);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--off-white);
+    color: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.9rem, 1.1vw, 1rem);
+    font-weight: 300;
+    line-height: 1.75;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CUSTOM CURSOR — CROSSHAIR + MAGNETIC ── */
+  body { cursor: none; }
+
+  .cursor-cross {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+  }
+
+  .cursor-cross::before,
+  .cursor-cross::after {
+    content: '';
+    position: absolute;
+    background: var(--dark);
+    transition: background 0.3s;
+  }
+
+  .cursor-cross::before {
+    width: 1px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  .cursor-cross::after {
+    width: 100%;
+    height: 1px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  .cursor-cross .cursor-dot {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: var(--dark);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 0.3s;
+  }
+
+  .cursor-cross.on-light::before,
+  .cursor-cross.on-light::after,
+  .cursor-cross.on-light .cursor-dot { background: var(--off-white); }
+
+  /* Grow crosshair on hover — no hand cursor */
+  a, button { cursor: none; }
+
+  .cursor-cross.is-hovering {
+    transform: translate(-50%, -50%) scale(2.5);
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .cursor-cross.is-hovering::before,
+  .cursor-cross.is-hovering::after { opacity: 0.5; }
+
+  .magnetic {
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* ── PAGE TRANSITIONS ── */
+  body {
+  }
+
+  @keyframes pageFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  body.page-leaving {
+    animation: pageFadeOut 0.4s ease both;
+    pointer-events: none;
+  }
+
+  @keyframes pageFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  /* ── GLOBAL LINK UNDERLINE EFFECT ── */
+  a {
+    text-decoration: none;
+    position: relative;
+  }
+
+  a:not(.nav-logo):not(.mobile-nav-links a):not(.cta-email):not(.footer-logo-text):not(.footer-dhoop):not(.footer-social):not(.project-cta):not(.work-link) {
+    padding-bottom: 1px;
+  }
+
+  a:not(.nav-logo):not(.mobile-nav-links a):not(.cta-email):not(.footer-logo-text):not(.footer-dhoop):not(.footer-social):not(.project-cta):not(.work-link)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  a:not(.nav-logo):not(.mobile-nav-links a):not(.cta-email):not(.footer-logo-text):not(.footer-dhoop):not(.footer-social):not(.project-cta):not(.work-link):hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem var(--edge);
+    mix-blend-mode: normal;
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: var(--off-white);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: opacity 0.3s;
+  }
+
+  .nav-logo:hover { opacity: 0.6; }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+  }
+
+  nav ul a {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(247,245,240,0.7);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  nav ul a:hover { color: var(--off-white); }
+
+  .nav-scrolled .nav-logo { color: var(--dark); }
+  .nav-scrolled ul a { color: var(--mid); }
+  .nav-scrolled ul a:hover { color: var(--dark); }
+  .nav-scrolled::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--off-white);
+    opacity: 0.95;
+    backdrop-filter: blur(12px);
+    z-index: -1;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  /* hamburger */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--off-white);
+    transition: transform 0.4s ease, opacity 0.3s ease;
+  }
+
+  .nav-scrolled .hamburger span { background: var(--dark); }
+  .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--edge);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .mobile-overlay.open { opacity: 1; pointer-events: all; }
+
+  .mobile-nav-links { list-style: none; display: flex; flex-direction: column; gap: 0; }
+  .mobile-nav-links li { border-bottom: 1px solid rgba(247,245,240,0.1); }
+  .mobile-nav-links li:first-child { border-top: 1px solid rgba(247,245,240,0.1); }
+
+  .mobile-nav-links a {
+    display: block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    color: var(--off-white);
+    text-decoration: none;
+    padding: 1rem 0;
+    letter-spacing: 0.04em;
+    font-weight: 300;
+    transition: opacity 0.2s;
+  }
+
+  .mobile-nav-links a:hover { opacity: 0.5; }
+
+  .mobile-email {
+    margin-top: 3rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: rgba(247,245,240,0.4);
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 100vh;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    will-change: auto;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(26,25,23,0.15) 0%,
+      rgba(26,25,23,0.35) 60%,
+      rgba(26,25,23,0.7) 100%
+    );
+  }
+
+  .hero-content {
+    position: absolute;
+    bottom: clamp(4rem, 8vw, 7rem);
+    left: var(--edge);
+    right: var(--edge);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 9vw, 9rem);
+    font-weight: 300;
+    line-height: 0.9;
+    color: var(--off-white);
+    letter-spacing: -0.02em;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    display: block;
+  }
+
+  .hero-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .hero-tagline {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: rgba(247,245,240,0.6);
+    text-transform: uppercase;
+    max-width: 24ch;
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  .hero-scroll {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    color: rgba(247,245,240,0.5);
+    text-transform: uppercase;
+  }
+
+  .hero-scroll-line {
+    width: 40px;
+    height: 1px;
+    background: rgba(247,245,240,0.4);
+    animation: scrollLine 2s ease infinite;
+  }
+
+  @keyframes scrollLine {
+    0% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(1); transform-origin: left; }
+    51% { transform: scaleX(1); transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+  }
+
+  /* ── MAIN CONTENT (slides up over fixed hero) ── */
+  #main-content {
+    position: relative;
+    z-index: 10;
+    margin-top: 100vh;
+    background: var(--off-white);
+    animation: pageFadeIn 0.6s ease both;
+  }
+
+  /* ── INTRO ── */
+  #intro {
+    padding: var(--gap) var(--edge);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 clamp(4rem, 8vw, 10rem);
+    align-items: start;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  #intro > div:first-child {
+    padding-right: 2rem;
+    border-right: 1px solid rgba(0,0,0,0.08);
+    padding-bottom: var(--gap);
+    padding-top: 1rem;
+  }
+
+  #intro > div:last-child {
+    padding-left: 0;
+    padding-top: 1rem;
+    padding-bottom: var(--gap);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .intro-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 2rem;
+  }
+
+  .intro-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.2rem, 4vw, 4rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--dark);
+  }
+
+  .intro-heading em { font-style: italic; }
+
+  .intro-right { padding-bottom: 0.5rem; }
+
+  .intro-text {
+    font-size: 0.95rem;
+    color: var(--mid);
+    max-width: 48ch;
+    line-height: 2;
+  }
+
+  .intro-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 3rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .intro-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 300;
+    color: var(--dark);
+    line-height: 1;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .intro-stat-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--light);
+  }
+
+  /* ── SELECTED WORK ── */
+  #work {
+    padding: var(--gap) var(--edge);
+  }
+
+  .work-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: clamp(3rem, 6vw, 6rem);
+  }
+
+  .work-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 3.5vw, 3.5rem);
+    font-weight: 300;
+    color: var(--dark);
+    letter-spacing: -0.01em;
+  }
+
+  .work-link {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: gap 0.3s ease, color 0.3s;
+  }
+
+  .work-link:hover { gap: 1.2rem; color: var(--dark); }
+  .work-link::after { content: '→'; }
+
+  /* Featured project */
+  .project-featured {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 0;
+    margin-bottom: 2px;
+    overflow: hidden;
+  }
+
+  .project-img-wrap {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .project-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .project-featured:hover .project-img-wrap img,
+  .project-grid-item:hover .project-img-wrap img { transform: scale(1.04); }
+
+  .project-info {
+    background: var(--cream);
+    padding: clamp(2.5rem, 5vw, 5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .project-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    color: var(--light);
+    letter-spacing: 0.1em;
+  }
+
+  .project-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 3vw, 3rem);
+    font-weight: 300;
+    color: var(--dark);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+  }
+
+  .project-name em { font-style: italic; }
+
+  .project-meta {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--light);
+    display: flex;
+    gap: 2rem;
+  }
+
+  .project-desc {
+    font-size: 0.88rem;
+    color: var(--mid);
+    line-height: 1.9;
+    max-width: 36ch;
+    margin-top: 2rem;
+  }
+
+  .project-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dark);
+    text-decoration: none;
+    margin-top: 2.5rem;
+    transition: gap 0.3s ease;
+  }
+
+  .project-cta:hover { gap: 1.2rem; }
+  .project-cta::after { content: '→'; }
+
+  /* Grid projects */
+  .project-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 2px;
+  }
+
+  .project-grid-item {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+  }
+
+  .project-grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .project-grid-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26,25,23,0.7) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 2rem;
+  }
+
+  .project-grid-item:hover .project-grid-overlay { opacity: 1; }
+
+  .project-grid-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.3rem, 2.2vw, 2rem);
+    font-weight: 300;
+    color: var(--off-white);
+    line-height: 1.1;
+  }
+
+  .project-grid-loc {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(247,245,240,0.6);
+    margin-top: 0.4rem;
+  }
+
+  /* ── APPROACH MOBILE SPACING ── */
+  @media (max-width: 900px) {
+    #video-section {
+      margin-bottom: 3rem;
+    }
+  }
+
+  /* ── VIDEO SECTION ── */
+  #video-section {
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #video-section video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+  }
+
+  .video-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(26,25,23,0.35);
+  }
+
+  .video-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: var(--edge);
+  }
+
+  .video-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 4vw, 4rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--off-white);
+    line-height: 1.2;
+    max-width: 20ch;
+    margin: 0 auto;
+    letter-spacing: -0.01em;
+  }
+
+  .video-attr {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(247,245,240,0.5);
+    margin-top: 2rem;
+  }
+
+  /* ── STICKY APPROACH ── */
+  .sticky-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  .sticky-wrap #approach {
+    width: 100%;
+    border-top: none;
+    border-bottom: none;
+    padding-top: clamp(4rem, 8vw, 8rem);
+    padding-bottom: clamp(4rem, 8vw, 8rem);
+  }
+
+  .slide-over {
+    position: relative;
+    z-index: 2;
+    background: var(--off-white);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.08);
+  }
+
+  footer {
+    position: relative;
+    z-index: 2;
+    background: var(--off-white);
+  }
+
+  /* ── APPROACH ── */
+  #approach {
+    padding: var(--gap) var(--edge);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem clamp(4rem, 8vw, 10rem);
+    border-top: 1px solid rgba(0,0,0,0.08);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .approach-left { position: relative; }
+
+  .approach-img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    display: block;
+  }
+
+  .approach-img-caption {
+    position: absolute;
+    bottom: -1.5rem;
+    right: -1.5rem;
+    background: var(--dark);
+    color: var(--off-white);
+    padding: 1.5rem 2rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.5rem, 2.5vw, 2.5rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.1;
+    max-width: 200px;
+  }
+
+  .approach-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 0;
+  }
+
+  .approach-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 3.5vw, 3.5rem);
+    font-weight: 300;
+    color: var(--dark);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 2rem;
+  }
+
+  .approach-heading em { font-style: italic; }
+
+  .approach-text {
+    font-size: 0.9rem;
+    color: var(--mid);
+    line-height: 2;
+    max-width: 44ch;
+    margin-bottom: 1.5rem;
+  }
+
+  .approach-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 2.5rem;
+  }
+
+  .approach-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mid);
+  }
+
+  .approach-list li:first-child { border-top: 1px solid rgba(0,0,0,0.08); }
+  .approach-list li span { color: var(--light); font-size: 0.68rem; }
+
+  /* ── CTA SECTION ── */
+  #cta-section {
+    padding: var(--gap) var(--edge);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .cta-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 6vw, 7rem);
+    font-weight: 300;
+    color: var(--dark);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    max-width: 14ch;
+  }
+
+  .cta-heading em { font-style: italic; }
+
+  .cta-sub {
+    font-size: 0.85rem;
+    color: var(--mid);
+    max-width: 40ch;
+    line-height: 1.9;
+  }
+
+  .cta-email {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    font-weight: 300;
+    color: var(--dark);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid var(--light);
+    padding-bottom: 0.3rem;
+    transition: border-color 0.3s, color 0.3s;
+  }
+
+  .cta-email:hover { border-color: var(--dark); color: var(--accent); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .footer-top {
+    padding: clamp(3rem, 6vw, 5rem) var(--edge);
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 3rem;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .footer-logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dark);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .footer-brand-desc {
+    font-size: 0.78rem;
+    color: #1a1917;
+    line-height: 1.8;
+    max-width: 24ch;
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-socials {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .footer-social {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--mid);
+    text-decoration: none;
+    text-transform: uppercase;
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .footer-social:hover { border-color: var(--dark); color: var(--dark); }
+
+  .footer-col-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #1a1917;
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+
+  .footer-col a {
+    font-size: 0.82rem;
+    color: var(--mid);
+    text-decoration: none;
+    transition: color 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-col a:hover { color: var(--dark); }
+
+  .footer-bottom {
+    padding: 1.5rem var(--edge);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-bottom p {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: #1a1917;
+    text-transform: uppercase;
+    max-width: none;
+  }
+
+  .footer-bottom-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .footer-bottom-links a {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: #1a1917;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-bottom-links a:hover { color: var(--dark); }
+
+  .footer-dhoop {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: #1a1917;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-dhoop:hover { color: var(--dark); }
+
+  /* ── ANIMATIONS ── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+
+  .fade-up.visible { opacity: 1; transform: none; }
+
+  .fade-in {
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+
+  .fade-in.visible { opacity: 1; }
+
+  /* Stagger children */
+  .stagger > * {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .stagger.visible > *:nth-child(1) { opacity: 1; transform: none; transition-delay: 0s; }
+  .stagger.visible > *:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.15s; }
+  .stagger.visible > *:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.3s; }
+  .stagger.visible > *:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.45s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    #video-section + #approach { margin-top: 3rem; }
+    nav ul { display: none; }
+    .hamburger { display: flex; }
+    #intro { grid-template-columns: 1fr; }
+    .project-featured { grid-template-columns: 1fr; }
+    .project-featured .project-img-wrap { aspect-ratio: 16/9; }
+    #approach { grid-template-columns: 1fr; }
+    .approach-img-caption { display: none; }
+    .work-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+    .hero-content { flex-direction: column; align-items: flex-start; gap: 2rem; }
+    .hero-right { align-items: flex-start; text-align: left; }
+    body { cursor: auto; }
+    .cursor-cross { display: none; }
+  }
+
+  @media (max-width: 900px) {
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  }
+
+  @media (max-width: 560px) {
+    .project-grid { grid-template-columns: 1fr; }
+    .intro-stats { gap: 2rem; }
+    .footer-top { grid-template-columns: 1fr; }
+    .footer-bottom-links { flex-direction: column; gap: 0.8rem; }
+  }
+</style>
+  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=40&auto=format&fit=crop&fm=webp" fetchpriority="high">
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor-cross" id="cursorCross"><span class="cursor-dot"></span></div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="index.html" class="nav-logo">Bjorn & Strand</a>
+  <ul>
+    <li><a href="work.html">Work</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" id="mobileOverlay">
+  <ul class="mobile-nav-links">
+    <li><a href="work.html">Work</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="mailto:studio@bjornstrand.com" class="mobile-email">studio@bjornstrand.com</a>
+</div>
+
+<!-- FIXED HERO -->
+<section id="hero">
+  <img
+    class="hero-img"
+    id="heroImg"
+    src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=40&auto=format&fit=crop&fm=webp"
+    alt="Bjorn & Strand architecture"
+    fetchpriority="high"
+    decoding="async"
+    width="1800"
+    height="1200"
+  >
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1 class="hero-title">
+      Architecture<br>
+      <em>& Interiors</em>
+    </h1>
+    <div class="hero-right">
+      <p class="hero-tagline">Thoughtful spaces for<br>the way people live</p>
+      <div class="hero-scroll">
+        <div class="hero-scroll-line"></div>
+        Scroll
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div id="main-content">
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="fade-up">
+      <span class="intro-label">Bjorn & Strand — Est. 2008</span>
+      <h2 class="intro-heading">
+        We design spaces<br>that <em>endure</em>
+      </h2>
+    </div>
+    <div class="fade-up">
+      <p class="intro-text">Founded in Oslo and now based across Scandinavia and the UK, Bjorn & Strand is an architecture and interiors studio driven by a belief that great design should be quiet, considered, and built to last.</p>
+      <div class="intro-stats stagger">
+        <div>
+          <span class="intro-stat-num">15+</span>
+          <span class="intro-stat-label">Years Practice</span>
+        </div>
+        <div>
+          <span class="intro-stat-num">80+</span>
+          <span class="intro-stat-label">Projects Completed</span>
+        </div>
+        <div>
+          <span class="intro-stat-num">6</span>
+          <span class="intro-stat-label">Design Awards</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SELECTED WORK -->
+  <section id="work">
+    <div class="work-header fade-up">
+      <h2 class="work-heading">Selected Work</h2>
+      <a href="work.html" class="work-link">View All Projects</a>
+    </div>
+
+    <!-- Featured project -->
+    <div class="project-featured fade-in">
+      <div class="project-img-wrap">
+        <img
+          src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=60&auto=format&fit=crop&fm=webp"
+          alt="Viken Residence"
+          loading="lazy"
+        >
+      </div>
+      <div class="project-info">
+        <span class="project-num">001</span>
+        <div>
+          <div class="project-name">Viken<br><em>Residence</em></div>
+          <div class="project-meta">
+            <span>Oslo, 2023</span>
+            <span>Residential</span>
+          </div>
+          <p class="project-desc">A private lakeside residence designed around the rhythm of the Norwegian seasons. Timber, stone, and glass in careful dialogue with the landscape.</p>
+          <a href="work.html" class="project-cta">View Project</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid projects -->
+    <div class="project-grid">
+      <div class="project-grid-item fade-in">
+        <img
+          src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=60&auto=format&fit=crop&fm=webp"
+          alt="Strand House"
+          loading="lazy"
+        >
+        <div class="project-grid-overlay">
+          <div class="project-grid-name">Strand<br>House</div>
+          <div class="project-grid-loc">Bergen, 2022 — Residential</div>
+        </div>
+      </div>
+      <div class="project-grid-item fade-in">
+        <img
+          src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=60&auto=format&fit=crop&fm=webp"
+          alt="Lysaker Cultural Centre"
+          loading="lazy"
+        >
+        <div class="project-grid-overlay">
+          <div class="project-grid-name">Lysaker<br>Cultural Centre</div>
+          <div class="project-grid-loc">Stavanger, 2022 — Cultural</div>
+        </div>
+      </div>
+      <div class="project-grid-item fade-in">
+        <img
+          src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=60&auto=format&fit=crop&fm=webp"
+          alt="Fjord Apartment"
+          loading="lazy"
+        >
+        <div class="project-grid-overlay">
+          <div class="project-grid-name">Fjord<br>Apartment</div>
+          <div class="project-grid-loc">Copenhagen, 2021 — Interior</div>
+        </div>
+      </div>
+      <div class="project-grid-item fade-in">
+        <img
+          src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=60&auto=format&fit=crop&fm=webp"
+          alt="Bjorn Studio HQ"
+          loading="lazy"
+        >
+        <div class="project-grid-overlay">
+          <div class="project-grid-name">Studio<br>Headquarters</div>
+          <div class="project-grid-loc">Oslo, 2020 — Commercial</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO SECTION -->
+  <section id="video-section">
+    <video autoplay muted loop playsinline aria-label="Studio architecture film">
+      <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+      <track kind="captions" srclang="en" label="English" src="" default>
+    </video>
+    <div class="video-overlay"></div>
+    <div class="video-content fade-in">
+      <p class="video-quote">"Architecture is frozen music"</p>
+      <p class="video-attr">— Friedrich Schelling</p>
+    </div>
+  </section>
+
+  <!-- APPROACH -->
+  <div class="sticky-wrap">
+  <section id="approach">
+    <div class="approach-left fade-in">
+      <img
+        class="approach-img"
+        src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=60&auto=format&fit=crop&fm=webp"
+        alt="Our approach"
+        loading="lazy"
+      >
+      <div class="approach-img-caption">Detail<br><em>matters</em></div>
+    </div>
+    <div class="approach-right fade-up">
+      <span class="intro-label">Our Approach</span>
+      <h2 class="approach-heading">
+        Quiet design.<br><em>Lasting impact.</em>
+      </h2>
+      <p class="approach-text">We believe the best architecture doesn't shout. It creates conditions — for light, for movement, for the way a room feels at different times of day. Every project begins with listening.</p>
+      <p class="approach-text">Our process is slow by design. We take fewer projects so we can give each one the attention it deserves.</p>
+      <ul class="approach-list">
+        <li>Residential Architecture <span>Since 2008</span></li>
+        <li>Commercial & Cultural <span>Since 2012</span></li>
+        <li>Interior Design <span>Since 2014</span></li>
+        <li>Landscape Integration <span>Since 2016</span></li>
+      </ul>
+    </div>
+  </section>
+
+  </div><!-- end sticky-wrap -->
+
+  <!-- CTA -->
+  <section id="cta-section" class="slide-over">
+    <h2 class="cta-heading fade-up">
+      Let's build<br><em>something</em><br>enduring
+    </h2>
+    <p class="cta-sub fade-up">We take on a limited number of projects each year. If you have a project in mind, we'd love to hear about it.</p>
+    <a href="mailto:studio@bjornstrand.com" class="cta-email fade-up">studio@bjornstrand.com</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="index.html" class="footer-logo-text">Bjorn & Strand</a>
+        <p class="footer-brand-desc">Architecture & Interiors.<br>Oslo — London — Copenhagen.</p>
+        <div class="footer-socials">
+          <a href="#" class="footer-social" aria-label="Instagram">Instagram</a>
+          <a href="#" class="footer-social" aria-label="LinkedIn">LinkedIn</a>
+          <a href="#" class="footer-social" aria-label="X">X</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <span class="footer-col-label">Studio</span>
+        <ul>
+          <li><a href="work.html">Work</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <span class="footer-col-label">Services</span>
+        <ul>
+          <li><a href="#">Residential</a></li>
+          <li><a href="#">Commercial</a></li>
+          <li><a href="#">Cultural</a></li>
+          <li><a href="#">Interiors</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <span class="footer-col-label">Partners</span>
+        <ul>
+          <li><a href="#">Vestre Materials</a></li>
+          <li><a href="#">Nordic Timber AS</a></li>
+          <li><a href="#">Lys Lighting Studio</a></li>
+          <li><a href="#">Kvist Landscape</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Bjorn & Strand AS — Registered in Norway</p>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+        <a href="https://www.madebydhoop.co.uk" target="_blank" rel="noopener" class="footer-dhoop">Website by Dhoop</a>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- end main-content -->
+
+<script>
+  // Crosshair cursor
+  const cross = document.getElementById('cursorCross');
+  let mx = 0, my = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    cross.style.left = mx + 'px';
+    cross.style.top = my + 'px';
+  });
+
+  // Light/dark crosshair — throttled with RAF, no getBoundingClientRect on scroll
+  const videoEl = document.getElementById('video-section');
+  let videoTop = 0, videoBottom = 0;
+
+  function cacheVideoRect() {
+    if (videoEl) {
+      const r = videoEl.getBoundingClientRect();
+      videoTop = r.top + window.scrollY;
+      videoBottom = r.bottom + window.scrollY;
+    }
+  }
+
+  window.addEventListener('load', cacheVideoRect);
+  window.addEventListener('resize', cacheVideoRect);
+
+  let colourRaf = null;
+  function updateCursorColour() {
+    if (colourRaf) return;
+    colourRaf = requestAnimationFrame(() => {
+      colourRaf = null;
+      const scrollY = window.scrollY;
+      const vh = window.innerHeight;
+      const midY = scrollY + vh / 2;
+      const onHero = scrollY < vh * 0.9;
+      const onVideo = videoEl && midY > videoTop && midY < videoBottom;
+      cross.classList.toggle('on-light', onHero || onVideo);
+    });
+  }
+
+  window.addEventListener('scroll', updateCursorColour);
+  updateCursorColour();
+
+  // Magnetic effect
+  const magneticEls = document.querySelectorAll('a, button');
+  magneticEls.forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cross.classList.add('magnetic');
+      cross.classList.add('is-hovering');
+    });
+    el.addEventListener('mouseleave', () => {
+      cross.classList.remove('magnetic');
+      cross.classList.remove('is-hovering');
+    });
+
+  });
+
+  // Nav scroll effect
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('nav-scrolled', window.scrollY > window.innerHeight * 0.8);
+  });
+
+  // Hero content fades and moves up as user scrolls
+  const heroContent = document.querySelector('.hero-content');
+  const heroTitle = document.querySelector('.hero-title');
+  const heroTagline = document.querySelector('.hero-tagline');
+
+  let heroRaf = null;
+  window.addEventListener('scroll', () => {
+    if (heroRaf) return;
+    heroRaf = requestAnimationFrame(() => {
+      heroRaf = null;
+      const scrolled = window.scrollY;
+      const vh = window.innerHeight;
+      const progress = Math.min(scrolled / vh, 1);
+
+      if (heroContent) {
+        heroContent.style.opacity = 1 - progress * 1.5;
+        heroContent.style.transform = `translateY(${-progress * 60}px)`;
+      }
+    });
+  }, { passive: true });
+  const hamburger = document.getElementById('hamburger');
+  const overlay = document.getElementById('mobileOverlay');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    overlay.classList.toggle('open');
+    document.body.style.overflow = overlay.classList.contains('open') ? 'hidden' : '';
+  });
+
+  overlay.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up, .fade-in, .stagger').forEach(el => observer.observe(el));
+
+  // Page transition on internal link click
+  document.querySelectorAll('a[href]').forEach(link => {
+    const href = link.getAttribute('href');
+    if (
+      href &&
+      !href.startsWith('#') &&
+      !href.startsWith('mailto') &&
+      !href.startsWith('tel') &&
+      !link.hasAttribute('target')
+    ) {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        document.body.classList.add('page-leaving');
+        setTimeout(() => {
+          window.location.href = href;
+        }, 380);
+      });
+    }
+  });
+</script>
+</body>
+</html>

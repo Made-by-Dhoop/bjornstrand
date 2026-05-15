@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work — Bjorn & Strand Architecture Studio</title>
+<meta name="description" content="Selected projects from Bjorn & Strand — residential, commercial, cultural and interior architecture across Scandinavia and the UK.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"></noscript>
+
+<style>
+  :root {
+    --cream: #f7f5f0;
+    --off-white: #faf9f6;
+    --dark: #1a1917;
+    --mid: #6b6860;
+    --light: #c8c4bc;
+    --accent: #8b7355;
+    --edge: clamp(2rem, 6vw, 6rem);
+    --gap: clamp(8rem, 16vw, 18rem);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--off-white);
+    color: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.9rem, 1.1vw, 1rem);
+    font-weight: 300;
+    line-height: 1.75;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CURSOR ── */
+  .cursor-cross {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    width: 28px; height: 28px;
+  }
+
+  .cursor-cross::before, .cursor-cross::after {
+    content: '';
+    position: absolute;
+    background: var(--dark);
+    transition: background 0.3s;
+  }
+
+  .cursor-cross::before { width: 1px; height: 100%; left: 50%; top: 0; transform: translateX(-50%); }
+  .cursor-cross::after { width: 100%; height: 1px; top: 50%; left: 0; transform: translateY(-50%); }
+
+  .cursor-dot {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: var(--dark);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 0.3s;
+  }
+
+  .cursor-cross.on-light::before,
+  .cursor-cross.on-light::after,
+  .cursor-cross.on-light .cursor-dot { background: var(--off-white); }
+
+  /* Grow crosshair on hover — no hand cursor */
+  a, button { cursor: none; }
+
+  .cursor-cross.is-hovering {
+    transform: translate(-50%, -50%) scale(2.5);
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .cursor-cross.is-hovering::before,
+  .cursor-cross.is-hovering::after { opacity: 0.5; }
+
+  /* ── GLOBAL LINK UNDERLINE ── */
+  a { text-decoration: none; position: relative; }
+
+  a:not(.nav-logo):not(.mobile-nav-links a):not(.footer-logo-text):not(.footer-dhoop):not(.footer-social):not(.project-view) {
+    padding-bottom: 1px;
+  }
+
+  a:not(.nav-logo):not(.mobile-nav-links a):not(.footer-logo-text):not(.footer-dhoop):not(.footer-social):not(.project-view)::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  a:not(.nav-logo):not(.mobile-nav-links a):not(.footer-logo-text):not(.footer-dhoop):not(.footer-social):not(.project-view):hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* ── PAGE TRANSITIONS ── */
+  body {
+    animation: pageFadeIn 0.6s ease both;
+  }
+
+  @keyframes pageFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  body.page-leaving {
+    animation: pageFadeOut 0.4s ease both;
+    pointer-events: none;
+  }
+
+  @keyframes pageFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  /* ── HOME LINK ENTRANCE ── */
+  @keyframes slideDownIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  nav ul li:first-child a {
+    animation: slideDownIn 0.6s 0.1s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem var(--edge);
+  }
+
+  nav::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--off-white);
+    opacity: 0.95;
+    backdrop-filter: blur(12px);
+    z-index: -1;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: var(--dark);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: opacity 0.3s;
+  }
+
+  .nav-logo:hover { opacity: 0.6; }
+
+  nav ul { list-style: none; display: flex; gap: 2.5rem; align-items: center; }
+
+  nav ul a {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  nav ul a:hover, nav ul a.active { color: var(--dark); }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 24px; height: 1px;
+    background: var(--dark);
+    transition: transform 0.4s ease, opacity 0.3s ease;
+  }
+
+  .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .mobile-overlay {
+    position: fixed; inset: 0;
+    background: var(--dark);
+    z-index: 90;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: var(--edge);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .mobile-overlay.open { opacity: 1; pointer-events: all; }
+  .mobile-nav-links { list-style: none; display: flex; flex-direction: column; gap: 0; }
+  .mobile-nav-links li { border-bottom: 1px solid rgba(247,245,240,0.1); }
+  .mobile-nav-links li:first-child { border-top: 1px solid rgba(247,245,240,0.1); }
+
+  .mobile-nav-links a {
+    display: block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    color: var(--off-white);
+    text-decoration: none;
+    padding: 1rem 0;
+    letter-spacing: 0.04em;
+    font-weight: 300;
+    transition: opacity 0.2s;
+  }
+
+  .mobile-nav-links a:hover { opacity: 0.5; }
+  .mobile-email { margin-top: 3rem; font-size: 0.78rem; letter-spacing: 0.1em; color: rgba(247,245,240,0.4); text-decoration: none; text-transform: uppercase; }
+
+  /* ── PAGE HEADER ── */
+  #page-header {
+    padding-top: 12rem;
+    padding-bottom: 5rem;
+    padding-left: var(--edge);
+    padding-right: var(--edge);
+  }
+
+  .page-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(4rem, 9vw, 10rem);
+    font-weight: 300;
+    line-height: 0.88;
+    letter-spacing: -0.03em;
+    color: var(--dark);
+  }
+
+  .page-title em { font-style: italic; }
+
+  /* ── FILTERS ── */
+  #filters {
+    padding: 0 var(--edge) 3rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding-bottom: 0;
+  }
+
+  .filter-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--light);
+    margin-right: 2.5rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .filter-btn {
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid);
+    cursor: pointer;
+    padding: 1.2rem 1.5rem;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-btn.active { color: var(--dark); border-bottom-color: var(--dark); }
+  .filter-btn:hover { color: var(--dark); }
+
+  /* ── PROJECTS ── */
+  #projects { padding: 0; }
+
+  .project-item {
+    padding: clamp(5rem, 10vw, 10rem) var(--edge);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    transition: opacity 0.4s ease;
+  }
+
+  .project-item.hidden { display: none; }
+
+  /* Alternating layouts */
+  .project-item:nth-child(odd) .project-inner {
+    grid-template-columns: 1.3fr 1fr;
+  }
+
+  .project-item:nth-child(even) .project-inner {
+    grid-template-columns: 1fr 1.3fr;
+    direction: rtl;
+  }
+
+  .project-item:nth-child(even) .project-inner > * { direction: ltr; }
+
+  .project-inner {
+    display: grid;
+    gap: clamp(3rem, 6vw, 8rem);
+    align-items: center;
+  }
+
+  /* Image */
+  .project-img-wrap {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Each project has a different aspect ratio for variety */
+  .project-item:nth-child(1) .project-img-wrap { aspect-ratio: 4/3; }
+  .project-item:nth-child(2) .project-img-wrap { aspect-ratio: 3/4; }
+  .project-item:nth-child(3) .project-img-wrap { aspect-ratio: 16/9; }
+  .project-item:nth-child(4) .project-img-wrap { aspect-ratio: 1/1; }
+  .project-item:nth-child(5) .project-img-wrap { aspect-ratio: 4/3; }
+  .project-item:nth-child(6) .project-img-wrap { aspect-ratio: 3/2; }
+
+  .project-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: saturate(0.9);
+  }
+
+  .project-item:hover .project-img-wrap img {
+    transform: scale(1.03);
+    filter: saturate(1);
+  }
+
+  /* Project number watermark */
+  .project-img-wrap::before {
+    content: attr(data-num);
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: rgba(247,245,240,0.6);
+    z-index: 1;
+  }
+
+  /* Info */
+  .project-info { padding: 1rem 0; }
+
+  .project-category {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  .project-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 300;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    color: var(--dark);
+    margin-bottom: 1rem;
+  }
+
+  .project-name em { font-style: italic; display: block; }
+
+  .project-location {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--light);
+    margin-bottom: 2.5rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .project-desc {
+    font-size: 0.88rem;
+    color: var(--mid);
+    line-height: 2;
+    max-width: 38ch;
+    margin-bottom: 3rem;
+  }
+
+  .project-meta-row {
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .project-meta-item {}
+  .project-meta-label { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light); display: block; margin-bottom: 0.3rem; }
+  .project-meta-value { font-size: 0.82rem; color: var(--mid); }
+
+  .project-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dark);
+    text-decoration: none;
+    transition: gap 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .project-view:hover { gap: 1.8rem; }
+
+  .project-view-line {
+    width: 40px;
+    height: 1px;
+    background: var(--dark);
+    transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .project-view:hover .project-view-line { width: 70px; }
+
+  /* ── CTA ── */
+  #work-cta {
+    padding: clamp(6rem, 12vw, 12rem) var(--edge);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem clamp(4rem, 8vw, 10rem);
+    align-items: center;
+    background: var(--dark);
+  }
+
+  .work-cta-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 300;
+    color: var(--off-white);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .work-cta-heading em { font-style: italic; }
+
+  .work-cta-right {}
+
+  .work-cta-text {
+    font-size: 0.88rem;
+    color: rgba(247,245,240,0.5);
+    line-height: 2;
+    max-width: 40ch;
+    margin-bottom: 2.5rem;
+  }
+
+  .work-cta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--off-white);
+    text-decoration: none;
+    transition: gap 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .work-cta-link:hover { gap: 1.8rem; }
+
+  .work-cta-line {
+    width: 40px; height: 1px;
+    background: var(--off-white);
+    transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .work-cta-link:hover .work-cta-line { width: 70px; }
+
+  /* ── FOOTER ── */
+  footer { border-top: 1px solid rgba(0,0,0,0.08); background: var(--off-white); }
+
+  .footer-top {
+    padding: clamp(3rem, 6vw, 5rem) var(--edge);
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 3rem;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .footer-logo-text { font-family: 'Cormorant Garamond', serif; font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dark); text-decoration: none; display: block; margin-bottom: 1rem; }
+  .footer-brand-desc { font-size: 0.78rem; color: #1a1917; line-height: 1.8; max-width: 24ch; margin-bottom: 1.5rem; }
+  .footer-socials { display: flex; gap: 1.5rem; }
+  .footer-social { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--mid); text-decoration: none; text-transform: uppercase; padding-bottom: 2px; border-bottom: 1px solid transparent; transition: border-color 0.2s, color 0.2s; }
+  .footer-social:hover { border-color: var(--dark); color: var(--dark); }
+  .footer-col-label { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: #1a1917; display: block; margin-bottom: 1.5rem; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+  .footer-col a { font-size: 0.82rem; color: var(--mid); text-decoration: none; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--dark); }
+  .footer-bottom { padding: 1.5rem var(--edge); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .footer-bottom p { font-size: 0.65rem; letter-spacing: 0.08em; color: #1a1917; text-transform: uppercase; max-width: none; }
+  .footer-bottom-links { display: flex; gap: 2rem; align-items: center; }
+  .footer-bottom-links a { font-size: 0.65rem; letter-spacing: 0.08em; color: #1a1917; text-transform: uppercase; text-decoration: none; transition: color 0.2s; }
+  .footer-bottom-links a:hover { color: var(--dark); }
+  .footer-dhoop { font-size: 0.65rem; letter-spacing: 0.08em; color: #1a1917; text-transform: uppercase; text-decoration: none; transition: color 0.2s; }
+  .footer-dhoop:hover { color: var(--dark); }
+
+  /* ── ANIMATIONS ── */
+  .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 1s ease, transform 1s ease; }
+  .fade-up.visible { opacity: 1; transform: none; }
+  .fade-in { opacity: 0; transition: opacity 1.2s ease; }
+  .fade-in.visible { opacity: 1; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav ul { display: none; }
+    .hamburger { display: flex; }
+    .project-inner,
+    .project-item:nth-child(odd) .project-inner,
+    .project-item:nth-child(even) .project-inner { grid-template-columns: 1fr; direction: ltr; }
+    .project-item:nth-child(even) .project-inner { direction: ltr; }
+    .project-item:nth-child(2) .project-img-wrap { aspect-ratio: 4/3; }
+    .project-item:nth-child(4) .project-img-wrap { aspect-ratio: 4/3; }
+    #work-cta { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    body { cursor: auto; }
+    .cursor-cross { display: none; }
+  }
+
+  @media (max-width: 560px) {
+    .footer-top { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; }
+    .footer-bottom-links { flex-direction: column; gap: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor-cross" id="cursorCross"><span class="cursor-dot"></span></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Bjorn & Strand</a>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="work.html" class="active">Work</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-overlay" id="mobileOverlay">
+  <ul class="mobile-nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="work.html">Work</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="mailto:studio@bjornstrand.com" class="mobile-email">studio@bjornstrand.com</a>
+</div>
+
+<main>
+
+<section id="page-header">
+  <span class="page-eyebrow fade-up">Selected Projects — 2019–2024</span>
+  <h1 class="page-title fade-up">Our<br><em>Work</em></h1>
+</section>
+
+<div id="filters">
+  <span class="filter-label">Filter</span>
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="residential">Residential</button>
+  <button class="filter-btn" data-filter="commercial">Commercial</button>
+  <button class="filter-btn" data-filter="cultural">Cultural</button>
+  <button class="filter-btn" data-filter="interior">Interior</button>
+</div>
+
+<section id="projects">
+
+  <!-- 01 — Viken Residence -->
+  <div class="project-item fade-in" data-category="residential">
+    <div class="project-inner">
+      <div class="project-img-wrap" data-num="001">
+        <img
+          src="https://images.unsplash.com/photo-1449844908441-8829872d2607?w=900&q=75&auto=format&fit=crop&fm=webp"
+          alt="Viken Residence"
+          loading="lazy"
+        >
+      </div>
+      <div class="project-info">
+        <span class="project-category">Residential</span>
+        <div class="project-name">Viken<br><em>Residence</em></div>
+        <div class="project-location">Tyrifjorden, Norway — 2024</div>
+        <p class="project-desc">A lakeside home that dissolves into its surroundings. The plan follows the topography of the site — stepping down toward the water through a sequence of terraced living spaces framed in raw larch and slate.</p>
+        <div class="project-meta-row">
+          <div class="project-meta-item">
+            <span class="project-meta-label">Size</span>
+            <span class="project-meta-value">340 m²</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Status</span>
+            <span class="project-meta-value">Completed</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Type</span>
+            <span class="project-meta-value">New Build</span>
+          </div>
+        </div>
+        <a href="#" class="project-view">
+          <span class="project-view-line"></span>
+          View Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 — Norde Office -->
+  <div class="project-item fade-in" data-category="commercial">
+    <div class="project-inner">
+      <div class="project-img-wrap" data-num="002">
+        <img
+          src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=900&q=75&auto=format&fit=crop&fm=webp"
+          alt="Norde Office"
+          loading="lazy"
+        >
+      </div>
+      <div class="project-info">
+        <span class="project-category">Commercial</span>
+        <div class="project-name">Norde<br><em>Office</em></div>
+        <div class="project-location">Shoreditch, London — 2023</div>
+        <p class="project-desc">A Nordic technology firm relocating to London needed a workspace that felt nothing like an office. Exposed concrete, living walls, and a deliberate lack of assigned desks — designed for the way people actually work.</p>
+        <div class="project-meta-row">
+          <div class="project-meta-item">
+            <span class="project-meta-label">Size</span>
+            <span class="project-meta-value">2,800 m²</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Status</span>
+            <span class="project-meta-value">Completed</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Type</span>
+            <span class="project-meta-value">Fit-Out</span>
+          </div>
+        </div>
+        <a href="#" class="project-view">
+          <span class="project-view-line"></span>
+          View Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 — Elva Gallery -->
+  <div class="project-item fade-in" data-category="cultural">
+    <div class="project-inner">
+      <div class="project-img-wrap" data-num="003">
+        <img
+          src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=75&auto=format&fit=crop&fm=webp"
+          alt="Elva Gallery"
+          loading="lazy"
+        >
+      </div>
+      <div class="project-info">
+        <span class="project-category">Cultural</span>
+        <div class="project-name">Elva<br><em>Gallery</em></div>
+        <div class="project-location">Helsinki, Finland — 2022</div>
+        <p class="project-desc">A contemporary art gallery carved into a former industrial warehouse. The intervention is intentionally restrained — preserving the raw character of the original structure while introducing a series of precise insertions that control light, circulation, and scale.</p>
+        <div class="project-meta-row">
+          <div class="project-meta-item">
+            <span class="project-meta-label">Size</span>
+            <span class="project-meta-value">1,200 m²</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Status</span>
+            <span class="project-meta-value">Completed</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Type</span>
+            <span class="project-meta-value">Conversion</span>
+          </div>
+        </div>
+        <a href="#" class="project-view">
+          <span class="project-view-line"></span>
+          View Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 — Fjord Apartment -->
+  <div class="project-item fade-in" data-category="interior">
+    <div class="project-inner">
+      <div class="project-img-wrap" data-num="004">
+        <img
+          src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900&q=75&auto=format&fit=crop&fm=webp"
+          alt="Fjord Apartment"
+          loading="lazy"
+        >
+      </div>
+      <div class="project-info">
+        <span class="project-category">Interior</span>
+        <div class="project-name">Fjord<br><em>Apartment</em></div>
+        <div class="project-location">Aker Brygge, Oslo — 2022</div>
+        <p class="project-desc">A complete reimagining of a waterfront apartment. Materials were chosen for how they age — pale oak, honed limestone, hand-thrown ceramics. The result is a home that will look better in ten years than it does today.</p>
+        <div class="project-meta-row">
+          <div class="project-meta-item">
+            <span class="project-meta-label">Size</span>
+            <span class="project-meta-value">180 m²</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Status</span>
+            <span class="project-meta-value">Completed</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Type</span>
+            <span class="project-meta-value">Renovation</span>
+          </div>
+        </div>
+        <a href="#" class="project-view">
+          <span class="project-view-line"></span>
+          View Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 — Strand House -->
+  <div class="project-item fade-in" data-category="residential">
+    <div class="project-inner">
+      <div class="project-img-wrap" data-num="005">
+        <img
+          src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=900&q=75&auto=format&fit=crop&fm=webp"
+          alt="Strand House"
+          loading="lazy"
+        >
+      </div>
+      <div class="project-info">
+        <span class="project-category">Residential</span>
+        <div class="project-name">Strand<br><em>House</em></div>
+        <div class="project-location">Fana, Bergen — 2021</div>
+        <p class="project-desc">A family home on the outskirts of Bergen, designed to be lived in rather than looked at. Generous thresholds between inside and out, a plan that adapts to different configurations of family life, and materials that require no maintenance.</p>
+        <div class="project-meta-row">
+          <div class="project-meta-item">
+            <span class="project-meta-label">Size</span>
+            <span class="project-meta-value">280 m²</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Status</span>
+            <span class="project-meta-value">Completed</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Type</span>
+            <span class="project-meta-value">New Build</span>
+          </div>
+        </div>
+        <a href="#" class="project-view">
+          <span class="project-view-line"></span>
+          View Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 — Lysaker Cultural Centre -->
+  <div class="project-item fade-in" data-category="cultural">
+    <div class="project-inner">
+      <div class="project-img-wrap" data-num="006">
+        <img
+          src="https://images.unsplash.com/photo-1518005068251-37900150dfca?w=900&q=75&auto=format&fit=crop&fm=webp"
+          alt="Lysaker Cultural Centre"
+          loading="lazy"
+        >
+      </div>
+      <div class="project-info">
+        <span class="project-category">Cultural</span>
+        <div class="project-name">Lysaker<br><em>Cultural Centre</em></div>
+        <div class="project-location">Stavanger, Norway — 2019</div>
+        <p class="project-desc">A new cultural centre for a mid-size Norwegian city — part library, part performance space, part community hall. The building is organised around a central atrium that acts as a covered public square regardless of the weather outside.</p>
+        <div class="project-meta-row">
+          <div class="project-meta-item">
+            <span class="project-meta-label">Size</span>
+            <span class="project-meta-value">4,500 m²</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Status</span>
+            <span class="project-meta-value">Completed</span>
+          </div>
+          <div class="project-meta-item">
+            <span class="project-meta-label">Type</span>
+            <span class="project-meta-value">New Build</span>
+          </div>
+        </div>
+        <a href="#" class="project-view">
+          <span class="project-view-line"></span>
+          View Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- DARK CTA -->
+<section id="work-cta">
+  <div class="fade-up">
+    <h2 class="work-cta-heading">Have something<br><em>in mind?</em></h2>
+  </div>
+  <div class="work-cta-right fade-up">
+    <p class="work-cta-text">We take on a small number of projects each year — selected for their ambition, their site, and the people behind them. If you have something you'd like to discuss, we'd like to hear about it.</p>
+    <a href="contact.html" class="work-cta-link">
+      <span class="work-cta-line"></span>
+      Get in touch
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="index.html" class="footer-logo-text">Bjorn & Strand</a>
+      <p class="footer-brand-desc">Architecture & Interiors.<br>Oslo — London — Copenhagen.</p>
+      <div class="footer-socials">
+        <a href="#" class="footer-social">Instagram</a>
+        <a href="#" class="footer-social">LinkedIn</a>
+        <a href="#" class="footer-social">X</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <span class="footer-col-label">Studio</span>
+      <ul>
+        <li><a href="work.html">Work</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="#">Press</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <span class="footer-col-label">Services</span>
+      <ul>
+        <li><a href="#">Residential</a></li>
+        <li><a href="#">Commercial</a></li>
+        <li><a href="#">Cultural</a></li>
+        <li><a href="#">Interiors</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <span class="footer-col-label">Partners</span>
+      <ul>
+        <li><a href="#">Vestre Materials</a></li>
+        <li><a href="#">Nordic Timber AS</a></li>
+        <li><a href="#">Lys Lighting Studio</a></li>
+        <li><a href="#">Kvist Landscape</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Bjorn & Strand AS — Registered in Norway</p>
+    <div class="footer-bottom-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Cookie Policy</a>
+      <a href="https://www.madebydhoop.co.uk" target="_blank" rel="noopener" class="footer-dhoop">Website by Dhoop</a>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+  // Cursor
+  const cross = document.getElementById('cursorCross');
+  document.addEventListener('mousemove', e => {
+    cross.style.left = e.clientX + 'px';
+    cross.style.top = e.clientY + 'px';
+  });
+
+  // Magnetic
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cross.classList.add('magnetic');
+      cross.classList.add('is-hovering');
+    });
+    el.addEventListener('mouseleave', () => {
+      cross.classList.remove('magnetic');
+      cross.classList.remove('is-hovering');
+    });
+
+  });
+
+  // Mobile menu
+  const hamburger = document.getElementById('hamburger');
+  const overlay = document.getElementById('mobileOverlay');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    overlay.classList.toggle('open');
+    document.body.style.overflow = overlay.classList.contains('open') ? 'hidden' : '';
+  });
+  overlay.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+
+  // Filter
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.project-item').forEach(item => {
+        item.classList.toggle('hidden', filter !== 'all' && item.dataset.category !== filter);
+      });
+    });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-up, .fade-in').forEach(el => observer.observe(el));
+
+  // Page transition
+  document.querySelectorAll('a[href]').forEach(link => {
+    const href = link.getAttribute('href');
+    if (
+      href &&
+      !href.startsWith('#') &&
+      !href.startsWith('mailto') &&
+      !href.startsWith('tel') &&
+      !link.hasAttribute('target')
+    ) {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        document.body.classList.add('page-leaving');
+        setTimeout(() => {
+          window.location.href = href;
+        }, 380);
+      });
+    }
+  });
+</script>
+</body>
+</html>
